@@ -1,10 +1,9 @@
 C:\Users\StarDebris\Desktop\FryingPan\FryingPan\bin\Debug\FryingPan.exe.config
 C:\Users\StarDebris\Desktop\FryingPan\FryingPan\bin\Debug\FryingPan.exe
 C:\Users\StarDebris\Desktop\FryingPan\FryingPan\bin\Debug\FryingPan.pdb
-C:\Users\StarDebris\Desktop\FryingPan\FryingPan\obj\Debug\FryingPan.csprojResolveAssemblyReference.cache
 C:\Users\StarDebris\Desktop\FryingPan\FryingPan\obj\Debug\FryingPan.Properties.Resources.resources
 C:\Users\StarDebris\Desktop\FryingPan\FryingPan\obj\Debug\FryingPan.csproj.GenerateResource.cache
 C:\Users\StarDebris\Desktop\FryingPan\FryingPan\obj\Debug\FryingPan.csproj.CoreCompileInputs.cache
 C:\Users\StarDebris\Desktop\FryingPan\FryingPan\obj\Debug\FryingPan.exe
 C:\Users\StarDebris\Desktop\FryingPan\FryingPan\obj\Debug\FryingPan.pdb
-C:\Users\StarDebris\Desktop\FryingPan\FryingPan\obj\Debug\FryingPan.Temperature.resources
+C:\Users\StarDebris\Desktop\FryingPan\FryingPan\obj\Debug\FryingPan.cpuTorture.resources

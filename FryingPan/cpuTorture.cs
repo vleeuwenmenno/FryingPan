@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Management;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,31 +14,9 @@ using System.Windows.Forms.DataVisualization.Charting;
 
 namespace FryingPan
 {
-    public class Temperature
+    public partial class cpuTorture : Form
     {
-        public double CurrentValue { get; set; }
-        public string InstanceName { get; set; }
-        public static List<Temperature> Temperatures
-        {
-            get
-            {
-                List<Temperature> result = new List<Temperature>();
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher(@"root\WMI", "SELECT * FROM MSAcpi_ThermalZoneTemperature");
-                foreach (ManagementObject obj in searcher.Get())
-                {
-                    Double temp = Convert.ToDouble(obj["CurrentTemperature"].ToString());
-                    temp = (temp - 2732) / 10.0;
-                    result.Add(new Temperature { CurrentValue = temp, InstanceName = obj["InstanceName"].ToString() });
-                }
-                return result;
-
-            }
-        }
-    }
-
-    public partial class Form1 : Form
-    {
-        public Form1()
+        public cpuTorture()
         {
             InitializeComponent();
         }
@@ -47,9 +24,6 @@ namespace FryingPan
         public PerformanceCounter[] cpuCounter;
         public int coreCount = 0;
         public Series[] coreSeries;
-
-        public PerformanceCounter ramCounter;
-        public Series memorySeries;
 
         public Series cpuTempSeries;
 
@@ -59,16 +33,17 @@ namespace FryingPan
         public ulong[] threadIterations;
         public Label[] threadLabels;
 
-        Stopwatch stressWatch = Stopwatch.StartNew();
-        long EndingAddress = 0;
+        public Stopwatch stressWatch = Stopwatch.StartNew();
+        public long EndingAddress = 0;
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.FormClosing += Form1_FormClosing;
+            int threadCoreCount = 0;
             ManagementObjectSearcher searcher = new ManagementObjectSearcher("select * from Win32_Processor");
 
             foreach (ManagementObject share in searcher.Get())
             {
+                threadCoreCount = int.Parse(share["ThreadCount"].ToString());
                 cpuName.Text = share["Name"].ToString() + "\n" + share["NumberOfCores"].ToString() + " cores - " + share["ThreadCount"].ToString() + " threads\n\n";
             }
 
@@ -81,18 +56,9 @@ namespace FryingPan
 
             cpuName.Text += "\nTotal installed RAM " + EndingAddress / 1024 + "GB";
 
-            memorySeries = memoryChart.Series.Add("line");
-
-            memorySeries.ChartType = SeriesChartType.Line;
-            memorySeries.Name = "Memory Usage";
-
-            memoryChart.ChartAreas[0].AxisX.Title = "Time (Seconds)";
-            memoryChart.ChartAreas[0].AxisY.Title = "MegaBytes";
-            memoryChart.ChartAreas[0].AxisY.Maximum = EndingAddress;
-
             cpuTempSeries = chart1.Series.Add("CPU Temperature");
             cpuTempSeries.ChartType = SeriesChartType.Line;
-            
+
             cpuChart.ChartAreas[0].AxisX.MajorGrid.LineWidth = 0;
             cpuChart.ChartAreas[0].AxisY.MajorGrid.LineWidth = 0;
             cpuChart.ChartAreas[0].AxisY.Maximum = 100;
@@ -121,15 +87,6 @@ namespace FryingPan
                 cpuCounter[i] = new PerformanceCounter("Processor", "% Processor Time", i.ToString());
                 Console.WriteLine(cpuCounter[i].CounterName);
             }
-
-            ramCounter = new PerformanceCounter("Memory", "Available MBytes");
-            threadCount.Value = 0;
-        }
-
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if(button1.Text == "&Stop making it cry")
-                button1.PerformClick();
         }
 
         public string getCurrentCpuUsage()
@@ -149,10 +106,6 @@ namespace FryingPan
             return s;
         }
 
-        public string getAvailableRAM()
-        {
-            return ramCounter.NextValue() + "";
-        }
 
         public Int64 NextInt64(Random rnd)
         {
@@ -183,8 +136,6 @@ namespace FryingPan
 
         private void uiUpdater_Tick(object sender, EventArgs e)
         {
-            memorySeries.Points.AddXY(0, getAvailableRAM());
-            memoryUsage.Text = "Memory usage " + getAvailableRAM() + " MB / " + EndingAddress + "MB";
             cpuUsage.Text = getCurrentCpuUsage();
 
             sampleTicks++;
@@ -274,6 +225,31 @@ namespace FryingPan
         private void cpuName_Click(object sender, EventArgs e)
         {
             Clipboard.SetText(cpuName.Text);
+        }
+
+        private void cpuTorture_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (button1.Text == "&Stop making it cry")
+            {
+                for (int i = 0; i < threadCount.Value; i++)
+                {
+                    stressThreads[i].Abort();
+                }
+
+                panel1.Controls.Clear();
+                threadCount.Enabled = true;
+                sqrtChck.Enabled = true;
+                powChk.Enabled = true;
+                stressWatch.Stop();
+
+                stressThreads = null;
+                threadLabels = null;
+                threadIterations = null;
+
+                GC.Collect();
+
+                button1.Text = "&Turn up the heater";
+            }
         }
     }
 }
